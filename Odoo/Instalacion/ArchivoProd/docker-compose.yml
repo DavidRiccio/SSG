@@ -10,15 +10,17 @@ services:
         - db
 
     # Port Mapping: indicamos que el puerto 8069 del contenedor se mapeara con el mismo puerto en el anfritrion
-    # Permitiendo acceder a Odoo mediante http://localhost:8069
+    # Permitiendo acceder a Odoo mediante http://localhost:8070
     ports:
-      - 8080:8080
+      - 8070:8069
 
     # Mapeamos el directorio de los contenedores (como por ejemplo" /mnt/extra-addons" )
     # en un directorio local (como por ejemplo en un directorio "./volumesOdoo/addons")
     # situado en el lugar donde ejecutemos "Docker compose"
     volumes:
       - ./volumesOdoo/addons:/mnt/extra-addons
+      - ./volumesOdoo/odoo/filestore:/var/lib/odoo/filestore
+      - ./volumesOdoo/odoo/sessions:/var/lib/odoo/sessions
     #Indicamos que el contenedor funcionara con usuario root y no con usuario odoo
     user: root
     # Definimos variables de entorno de Odoo
@@ -26,6 +28,8 @@ services:
       - HOST=db
       - USER=odoo
       - PASSWORD=odoo
+    # Indica que pasa ese parametro al arrancar el servicio Odoo
+    command: --dev=all 
 #Definimos el servicio de la base de datos
   db:
     image: postgres:15
