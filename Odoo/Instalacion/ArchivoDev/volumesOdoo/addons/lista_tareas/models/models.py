@@ -1,29 +1,37 @@
-# -*- coding: utf-8 -*-
+
 
 from odoo import models, fields, api
 
-# Definimos el modelo de datos
+from datetime import date 
+
+
 class ListaTareas(models.Model):
-    # Nombre y descripción del modelo de datos
+    
     _name = 'lista_tareas.lista_tareas'
     _description = 'Lista de tareas'
 
-    # Elementos de cada fila del modelo de datos
+    
     tarea = fields.Char(string='Tarea')
-    asignado_a=fields.Many2one('res.users',string='Asignacion')
+    asignado_a = fields.Many2one('res.users', string='Asignacion')
     prioridad = fields.Integer(string='Prioridad')
-    urgente = fields.Boolean(
-        string='Urgente',
-        compute='_value_urgente',
-        store=True
-    )
-
     realizada = fields.Boolean(string='Realizada')
-
-    # Este cómputo depende de la variable prioridad
+    fecha_limite = fields.Date(string='Fecha Límite')
+    fecha_creacion = fields.Date(string='Fecha de Creación', default=fields.Date.today,readonly=True )
+    urgente = fields.Boolean(string='Urgente',compute='_value_urgente',store=True)    
+    retrasada = fields.Boolean(string='Retrasada',compute='_compute_retrasada',store=True)   
+     
     @api.depends('prioridad')
     def _value_urgente(self):
-        # Para cada registro
         for record in self:
-            # Si la prioridad es mayor que 10, se considera urgente
             record.urgente = record.prioridad > 10
+    
+    @api.depends('realizada', 'fecha_limite')
+    def _compute_retrasada(self):
+        hoy = date.today()
+        for record in self:
+            es_retrasada = (
+                not record.realizada and 
+                record.fecha_limite and 
+                record.fecha_limite < hoy
+            )
+            record.retrasada = es_retrasada
